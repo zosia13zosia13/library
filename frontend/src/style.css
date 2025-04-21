@@ -1,18 +1,91 @@
-.container {
-    width: 300px;
-    margin: 50px auto;
+/* Ogólny styl strony */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+  }
+  
+  /* Kontener główny */
+  .container {
+    max-width: 400px;
+    margin: 80px auto;
+    padding: 30px 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     text-align: center;
   }
   
-  input {
-    margin: 5px 0;
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
+  /* Nagłówki */
+  h1 {
+    margin-bottom: 24px;
+    font-size: 24px;
+    font-weight: 500;
   }
   
+  /* Pola formularza */
+  input,
+  select {
+    margin: 8px 0;
+    padding: 10px 12px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+  }
+  
+  input:focus,
+  select:focus {
+    border-color: #999;
+    outline: none;
+  }
+  
+  /* Przyciski */
   button {
-    margin-top: 10px;
-    padding: 8px 16px;
+    margin-top: 16px;
+    padding: 10px 20px;
+    font-size: 15px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  button:hover {
+    background-color: #555;
+  }
+  
+  /* Linki */
+  a {
+    color: #0077cc;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Lista książek */
+  ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    text-align: left;
+  }
+  
+  li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  li:last-child {
+    border-bottom: none;
   }
   

@@ -96,4 +96,14 @@ app.post('/register', async (req, res) => {
       res.status(500).send('Wystąpił błąd serwera.');
     }
   });
+
+  app.get('/branches', async (req, res) => {
+    try {
+      const branches = await prisma.branch.findMany();
+      res.json(branches);
+    } catch (err) {
+      console.error('Błąd:', err);
+      res.status(500).send('Błąd serwera');
+    }
+  });
   

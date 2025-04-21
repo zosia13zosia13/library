@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../style.css';
+import { useNavigate } from 'react-router-dom';
+
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -8,6 +10,8 @@ function Login() {
     password: ''
   });
   const [message, setMessage] = useState('');
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -25,6 +29,10 @@ function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
+
+      if (res.ok) {
+        navigate('/books');
+      }      
 
       const data = await res.json();
       setMessage(data.message);
