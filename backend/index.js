@@ -7,7 +7,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 
-app.use(cors());
+app.use(cors({origin: '*'}));
 app.use(express.json());
 
 
@@ -72,22 +72,28 @@ app.post('/register', async (req, res) => {
     const { email, password } = req.body;
   
     try {
-      // 1. Sprawdź, czy użytkownik już istnieje
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const existingUser = await prisma.user.findUnique({
-        where: {email, password:hashedPassword}
+      // 1. Znajdź użytkownika po emailu
+      const user = await prisma.user.findUnique({
+        where: { email }
       });
   
-      if (existingUser) {
-        return res.status(400).json({ message: 'Zalogowano' });
+      // 2. Jeśli nie istnieje
+      if (!user) {
+        return res.status(401).json({ message: 'Błędne dane logowania' });
       }
   
-      // 3. Zapis do bazy danych
-    return res.status(401).json({ message: 'Błędne dane logowania' });
+      // 3. Porównaj hasło z hashem w bazie
+      const passwordMatch = await bcrypt.compare(password, user.password);
   
+      if (!passwordMatch) {
+        return res.status(401).json({ message: 'Błędne dane logowania' });
+      }
+  
+      // 4. Logowanie zakończone sukcesem
+      res.status(200).json({ message: 'Zalogowano pomyślnie', userId: user.id });
     } catch (err) {
       console.error('Błąd przy logowaniu:', err);
       res.status(500).send('Wystąpił błąd serwera.');
     }
   });
+  
