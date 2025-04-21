@@ -1,0 +1,91 @@
+// Prisma schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
+  name          String
+  password      String
+  createdAt     DateTime      @default(now())
+  loans         Loan[]
+  reservations  Reservation[]
+  notifications Notification[]
+  reviews       Review[]
+  isBlocked     Boolean       @default(false)
+}
+
+model Branch {
+  id        Int      @id @default(autoincrement())
+  name      String
+  location  String
+  books     Book[]
+}
+
+model Book {
+  id            Int         @id @default(autoincrement())
+  title         String
+  author        String
+  genre         String
+  publishedYear Int
+  description   String
+  quantity      Int
+  branchId      Int
+  branch        Branch      @relation(fields: [branchId], references: [id])
+  reviews       Review[]
+  loans         Loan[]
+  reservations  Reservation[]
+}
+
+model Loan {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  bookId       Int
+  borrowedAt   DateTime  @default(now())
+  dueDate      DateTime
+  returnedAt   DateTime?
+
+  user         User      @relation(fields: [userId], references: [id])
+  book         Book      @relation(fields: [bookId], references: [id])
+}
+
+model Reservation {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  bookId       Int
+  reservedAt   DateTime  @default(now())
+  expiresAt    DateTime
+
+  user         User      @relation(fields: [userId], references: [id])
+  book         Book      @relation(fields: [bookId], references: [id])
+}
+
+model Notification {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  message      String
+  sentAt       DateTime   @default(now())
+
+  user         User      @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  bookId       Int
+  rating       Int       // 1–5
+  comment      String
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id])
+  book         Book      @relation(fields: [bookId], references: [id])
+}
+
+
