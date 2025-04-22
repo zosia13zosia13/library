@@ -34,6 +34,41 @@ app.get('/books', async (req, res) => {
   }
 });
 
+//Zwraca tylko książki z wybranej filii
+  app.get('/books/:id', async (req, res) => {
+    const bookId = parseInt(req.params.id);
+  
+    try {
+      const book = await prisma.book.findUnique({
+        where: { id: bookId },
+        include: {
+          branch: true,
+          loans: true
+        }
+      });
+  
+      if (!book) return res.status(404).send('Nie znaleziono książki');
+  
+      res.json({
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        genre: book.genre,
+        publishedYear: book.publishedYear,
+        description: book.description,
+        quantity: book.quantity,
+        coverUrl: book.coverUrl,
+        branch: book.branch.name,
+        branchId: book.branchId,
+        timesLoaned: book.loans.length
+      });
+    } catch (err) {
+      console.error('Błąd przy pobieraniu książki:', err);
+      res.status(500).send('Błąd serwera');
+    }
+  });
+  
+  
 
 app.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
@@ -96,7 +131,7 @@ app.post('/register', async (req, res) => {
       res.status(500).send('Wystąpił błąd serwera.');
     }
   });
-
+  
   app.get('/branches', async (req, res) => {
     try {
       const branches = await prisma.branch.findMany();
@@ -106,4 +141,42 @@ app.post('/register', async (req, res) => {
       res.status(500).send('Błąd serwera');
     }
   });
+
+  app.get('/branches/:id/books', async (req, res) => {
+    const branchId = parseInt(req.params.id);
   
+    try {
+      const books = await prisma.book.findMany({
+        where: { branchId }
+      });
+  
+      res.json(books); // <- ZWRACAMY JSON
+    } catch (err) {
+      console.error('Błąd przy pobieraniu książek:', err);
+      res.status(500).json({ error: 'Błąd serwera' }); // <- też JSON
+    }
+  });
+  
+  app.get('/users/:id/loans', async (req, res) => {
+    const userId = parseInt(req.params.id);
+  
+    try {
+      const loans = await prisma.loan.findMany({
+        where: { userId },
+        include: {
+          book: true,
+        }
+      });
+  
+      const response = loans.map(loan => ({
+        id: loan.id,
+        title: loan.book.title,
+        dueDate: loan.dueDate,
+      }));
+  
+      res.json(response);
+    } catch (err) {
+      console.error('Błąd przy pobieraniu wypożyczeń:', err);
+      res.status(500).json({ error: 'Błąd serwera' });
+    }
+  });

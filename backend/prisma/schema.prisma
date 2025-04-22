@@ -30,31 +30,32 @@ model Branch {
 }
 
 model Book {
-  id            Int         @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   title         String
   author        String
   genre         String
   publishedYear Int
   description   String
   quantity      Int
+  coverUrl      String?   // link do okładki książki
   branchId      Int
-  branch        Branch      @relation(fields: [branchId], references: [id])
+  branch        Branch    @relation(fields: [branchId], references: [id])
   reviews       Review[]
   loans         Loan[]
   reservations  Reservation[]
 }
 
-model Loan {
-  id           Int       @id @default(autoincrement())
-  userId       Int
-  bookId       Int
-  borrowedAt   DateTime  @default(now())
-  dueDate      DateTime
-  returnedAt   DateTime?
 
-  user         User      @relation(fields: [userId], references: [id])
-  book         Book      @relation(fields: [bookId], references: [id])
+model Loan {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  bookId     Int
+  branchId   Int
+  dueDate    DateTime
+  user       User     @relation(fields: [userId], references: [id])
+  book       Book     @relation(fields: [bookId], references: [id])
 }
+
 
 model Reservation {
   id           Int       @id @default(autoincrement())

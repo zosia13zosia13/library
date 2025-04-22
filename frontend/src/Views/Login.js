@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import '../style.css';
 import { useNavigate } from 'react-router-dom';
-
+import '../style.css';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -30,11 +29,14 @@ function Login() {
         body: JSON.stringify(formData)
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        navigate('/books');
+        localStorage.setItem('userId', data.userId)
+        navigate('/select-branch');
       }      
 
-      const data = await res.json();
+      
       setMessage(data.message);
     } catch (err) {
       console.error('Błąd:', err);
