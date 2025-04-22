@@ -10,83 +10,82 @@ datasource db {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
   name          String
   password      String
-  createdAt     DateTime      @default(now())
+  createdAt     DateTime       @default(now())
   loans         Loan[]
   reservations  Reservation[]
   notifications Notification[]
   reviews       Review[]
-  isBlocked     Boolean       @default(false)
+  isBlocked     Boolean        @default(false)
 }
 
 model Branch {
-  id        Int      @id @default(autoincrement())
-  name      String
-  location  String
-  books     Book[]
+  id          Int           @id @default(autoincrement())
+  name        String
+  location    String
+  books       Book[]
+  Reservation Reservation[]
 }
 
 model Book {
-  id            Int       @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
   title         String
   author        String
   genre         String
   publishedYear Int
   description   String
   quantity      Int
-  coverUrl      String?   // link do okładki książki
+  coverUrl      String? // link do okładki książki
   branchId      Int
-  branch        Branch    @relation(fields: [branchId], references: [id])
+  branch        Branch        @relation(fields: [branchId], references: [id])
   reviews       Review[]
   loans         Loan[]
   reservations  Reservation[]
 }
 
-
 model Loan {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  bookId   Int
+  branchId Int
+  dueDate  DateTime
+  user     User     @relation(fields: [userId], references: [id])
+  book     Book     @relation(fields: [bookId], references: [id])
+}
+
+model Reservation {
   id         Int      @id @default(autoincrement())
   userId     Int
   bookId     Int
   branchId   Int
-  dueDate    DateTime
-  user       User     @relation(fields: [userId], references: [id])
-  book       Book     @relation(fields: [bookId], references: [id])
-}
+  reservedAt DateTime @default(now())
+  expiresAt  DateTime
 
-
-model Reservation {
-  id           Int       @id @default(autoincrement())
-  userId       Int
-  bookId       Int
-  reservedAt   DateTime  @default(now())
-  expiresAt    DateTime
-
-  user         User      @relation(fields: [userId], references: [id])
-  book         Book      @relation(fields: [bookId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  book   Book   @relation(fields: [bookId], references: [id])
+  branch Branch @relation(fields: [branchId], references: [id])
 }
 
 model Notification {
-  id           Int       @id @default(autoincrement())
-  userId       Int
-  message      String
-  sentAt       DateTime   @default(now())
+  id      Int      @id @default(autoincrement())
+  userId  Int
+  message String
+  sentAt  DateTime @default(now())
 
-  user         User      @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Review {
-  id           Int       @id @default(autoincrement())
-  userId       Int
-  bookId       Int
-  rating       Int       // 1–5
-  comment      String
-  createdAt    DateTime  @default(now())
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  bookId    Int
+  rating    Int // 1–5
+  comment   String
+  createdAt DateTime @default(now())
 
-  user         User      @relation(fields: [userId], references: [id])
-  book         Book      @relation(fields: [bookId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
 }
-
-
