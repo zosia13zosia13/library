@@ -30,6 +30,31 @@ app.get("/books", async (req, res) => {
   }
 });
 
+app.get('/books/genres', async (req, res) => {
+    const genres = await prisma.book.findMany({
+      distinct: ['genre'],
+      select: { genre: true }
+    });
+  
+    res.json(genres.map(g => g.genre));
+  });
+  
+  app.get('/books/search', async (req, res) => {
+    const { title, genre, branchId } = req.query;
+  
+    const books = await prisma.book.findMany({
+      where: {
+        AND: [
+          title ? { title: { contains: title, mode: 'insensitive' } } : {},
+          genre ? { genre: genre } : {},
+          branchId ? { branchId: parseInt(branchId) } : {}
+        ]
+      }
+    });
+  
+    res.json(books);
+  });
+
 //Zwraca tylko książki z wybranej filii
 app.get("/books/:id", async (req, res) => {
   const bookId = parseInt(req.params.id);
@@ -152,6 +177,21 @@ app.get("/branches/:id/books", async (req, res) => {
   }
 });
 
+app.get('/users/:id', async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  res.json({
+    name: user.name,
+    email: user.email
+  });
+});
+
 app.get("/users/:id/loans", async (req, res) => {
   const userId = parseInt(req.params.id);
 
@@ -176,43 +216,66 @@ app.get("/users/:id/loans", async (req, res) => {
   }
 });
 
-app.post("/reservations", async (req, res) => {
+app.post('/reservations', async (req, res) => {
   const { userId, bookId, branchId } = req.body;
 
   try {
-    const existing = await prisma.reservation.findFirst({
+    // 🔹 Sprawdź, ile użytkownik już ma aktywnych rezerwacji
+    const userReservations = await prisma.reservation.count({
       where: {
         userId,
-        bookId,
-        expiresAt: { gte: new Date() },
-      },
+        expiresAt: {
+          gt: new Date() // rezerwacje, które jeszcze nie wygasły
+        }
+      }
     });
-    if (existing) {
-      return res
-        .status(400)
-        .json({ error: "Już masz aktywną rezerwację tej książki." });
+
+    if (userReservations >= 5) {
+      return res.status(400).json({ message: 'Możesz mieć maksymalnie 5 rezerwacji.' });
     }
 
-    const reservedAt = new Date();
-    const expiresAt = new Date();
-    expiresAt.setDate(reservedAt.getDate() + 7); // 7 dni
-
-    const reservation = await prisma.reservation.create({
-      data: {
-        userId,
-        bookId,
-        branchId,
-        reservedAt,
-        expiresAt,
-      },
+    // 🔹 Sprawdź dostępność książki
+    const book = await prisma.book.findUnique({
+      where: { id: bookId }
     });
 
-    res.status(201).json({ message: "Książka zarezerwowana!", reservation });
+    if (!book || book.quantity <= 0) {
+      return res.status(400).json({ message: 'Brak dostępnych egzemplarzy.' });
+    }
+
+    // 🔹 Zarezerwuj książkę
+    const now = new Date();
+    const expires = new Date(now);
+    expires.setDate(now.getDate() + 7); // rezerwacja ważna przez 7 dni
+
+    await prisma.reservation.create({
+      data: {
+        user: { connect: { id: userId } },
+        book: { connect: { id: bookId } },
+        branch: { connect: {id: branchId }},
+        reservedAt: now,
+        expiresAt: expires,
+      }
+    });
+
+    // 🔹 Zmniejsz ilość dostępnych egzemplarzy
+    await prisma.book.update({
+      where: { id: bookId },
+      data: {
+        quantity: {
+          decrement: 1
+        }
+      }
+    });
+
+    res.status(201).json({ message: 'Książka została zarezerwowana!' });
+
   } catch (err) {
-    console.error("Błąd przy rezerwacji:", err);
-    res.status(500).json({ error: "Nie udało się zarezerwować książki." });
+    console.error('❌ Błąd przy rezerwacji:', err);
+    res.status(500).send('Wystąpił błąd serwera.');
   }
 });
+
 
 app.get('/users/:id/reservations', async (req, res) => {
     const userId = parseInt(req.params.id);
@@ -254,5 +317,14 @@ app.get('/users/:id/reservations', async (req, res) => {
       console.error('Błąd przy anulowaniu:', err);
       res.status(500).json({ error: 'Nie udało się anulować rezerwacji.' });
     }
+  });
+
+
+  process.on('uncaughtException', (err) => {
+    console.error('❌ Nieobsłużony wyjątek:', err);
+  });
+  
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Nieobsłużona obietnica:', reason);
   });
   

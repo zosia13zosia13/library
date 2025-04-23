@@ -10,24 +10,24 @@ datasource db {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  email         String         @unique
-  name          String
-  password      String
-  createdAt     DateTime       @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+
   loans         Loan[]
   reservations  Reservation[]
   notifications Notification[]
   reviews       Review[]
-  isBlocked     Boolean        @default(false)
 }
 
 model Branch {
-  id          Int           @id @default(autoincrement())
-  name        String
-  location    String
-  books       Book[]
-  Reservation Reservation[]
+  id       Int    @id @default(autoincrement())
+  name     String
+  location String
+
+  books        Book[]
+  reservations Reservation[]
 }
 
 model Book {
