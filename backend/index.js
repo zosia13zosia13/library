@@ -213,3 +213,46 @@ app.post("/reservations", async (req, res) => {
     res.status(500).json({ error: "Nie udało się zarezerwować książki." });
   }
 });
+
+app.get('/users/:id/reservations', async (req, res) => {
+    const userId = parseInt(req.params.id);
+  
+    try {
+      const reservations = await prisma.reservation.findMany({
+        where: { userId },
+        include: {
+          book: true,
+          branch: true
+        }
+      });
+  
+      const result = reservations.map(r => ({
+        id: r.id,
+        title: r.book.title,
+        reservedAt: r.reservedAt,
+        expiresAt: r.expiresAt,
+        branchName: r.branch.name
+      }));
+  
+      res.json(result);
+    } catch (err) {
+      console.error('Błąd pobierania rezerwacji:', err);
+      res.status(500).json({ error: 'Błąd serwera' });
+    }
+  });
+  
+  app.delete('/reservations/:id', async (req, res) => {
+    const reservationId = parseInt(req.params.id);
+  
+    try {
+      await prisma.reservation.delete({
+        where: { id: reservationId }
+      });
+  
+      res.status(200).json({ message: 'Rezerwacja anulowana.' });
+    } catch (err) {
+      console.error('Błąd przy anulowaniu:', err);
+      res.status(500).json({ error: 'Nie udało się anulować rezerwacji.' });
+    }
+  });
+  

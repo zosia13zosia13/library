@@ -7,6 +7,7 @@ function Layout() {
     <nav className="navbar">
       <Link to="/select-branch" className="nav-link">🏛 Wybierz filię</Link>
       <Link to="/my-loans" className="nav-link">📚 Moje wypożyczenia</Link>
+      <Link to="/my-reservations" className="nav-link">📋 Moje rezerwacje</Link>
       <Link to="/logout" className="nav-link logout">🚪 Wyloguj</Link>
     </nav>
   );

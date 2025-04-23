@@ -254,3 +254,18 @@ body, h1, h2, h3, p, ul {
     box-shadow: 0 1px 4px rgba(0,0,0,0.03);
   }
   
+  .cancel-button {
+    margin-top: 8px;
+    background-color: #ffeaea;
+    border: 1px solid #ffaaaa;
+    color: #a00;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .cancel-button:hover {
+    background-color: #ffd4d4;
+  }
+  
