@@ -276,55 +276,111 @@ app.post('/reservations', async (req, res) => {
   }
 });
 
-
+// Rezerwacje książek danego użytkownika
 app.get('/users/:id/reservations', async (req, res) => {
-    const userId = parseInt(req.params.id);
-  
-    try {
-      const reservations = await prisma.reservation.findMany({
-        where: { userId },
-        include: {
-          book: true,
-          branch: true
-        }
-      });
-  
-      const result = reservations.map(r => ({
-        id: r.id,
-        title: r.book.title,
-        reservedAt: r.reservedAt,
-        expiresAt: r.expiresAt,
-        branchName: r.branch.name
-      }));
-  
-      res.json(result);
-    } catch (err) {
-      console.error('Błąd pobierania rezerwacji:', err);
-      res.status(500).json({ error: 'Błąd serwera' });
-    }
-  });
-  
-  app.delete('/reservations/:id', async (req, res) => {
-    const reservationId = parseInt(req.params.id);
-  
-    try {
-      await prisma.reservation.delete({
-        where: { id: reservationId }
-      });
-  
-      res.status(200).json({ message: 'Rezerwacja anulowana.' });
-    } catch (err) {
-      console.error('Błąd przy anulowaniu:', err);
-      res.status(500).json({ error: 'Nie udało się anulować rezerwacji.' });
-    }
-  });
+  const userId = parseInt(req.params.id);
 
+  try {
+    const reservations = await prisma.reservation.findMany({
+      where: { userId },
+      include: {
+        book: true,
+        branch: true
+      }
+    });
 
-  process.on('uncaughtException', (err) => {
-    console.error('❌ Nieobsłużony wyjątek:', err);
-  });
-  
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Nieobsłużona obietnica:', reason);
-  });
-  
+    const result = reservations.map(r => ({
+      id: r.id,
+      title: r.book.title,
+      reservedAt: r.reservedAt,
+      expiresAt: r.expiresAt,
+      branchName: r.branch.name
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error('Błąd pobierania rezerwacji:', err);
+    res.status(500).json({ error: 'Błąd serwera' });
+  }
+});
+
+// Anulowanie rezerwacji książki
+app.delete('/reservations/:id', async (req, res) => {
+  const reservationId = parseInt(req.params.id);
+
+  try {
+    await prisma.reservation.delete({
+      where: { id: reservationId }
+    });
+
+    res.status(200).json({ message: 'Rezerwacja anulowana.' });
+  } catch (err) {
+    console.error('Błąd przy anulowaniu:', err);
+    res.status(500).json({ error: 'Nie udało się anulować rezerwacji.' });
+  }
+});
+
+// Rezerwacja sali (z uwzględnieniem filii)
+app.post('/room-reservations', async (req, res) => {
+  const { userId, branchId, startTime, endTime, purpose } = req.body;
+
+  try {
+    await prisma.roomReservation.create({
+      data: {
+        user: { connect: { id: userId } },
+        branch: { connect: { id: branchId } },
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        purpose
+      }
+    });
+
+    res.status(201).json({ message: 'Sala została zarezerwowana!' });
+  } catch (err) {
+    console.error('Błąd przy rezerwacji sali:', err);
+    res.status(500).send('Błąd serwera');
+  }
+});
+
+// Pobieranie rezerwacji sali użytkownika
+app.get('/users/:id/room-reservations', async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  try {
+    const reservations = await prisma.roomReservation.findMany({
+      where: { userId },
+      orderBy: { startTime: 'asc' }
+    });
+
+    res.json(reservations);
+  } catch (err) {
+    console.error('Błąd pobierania rezerwacji sali:', err);
+    res.status(500).json({ error: 'Błąd serwera' });
+  }
+});
+
+// Anulowanie rezerwacji sali
+app.patch('/room-reservations/:id/cancel', async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  try {
+    await prisma.roomReservation.update({
+      where: { id },
+      data: { canceled: true }
+    });
+
+    res.json({ message: 'Rezerwacja anulowana.' });
+  } catch (err) {
+    console.error('Błąd anulowania rezerwacji sali:', err);
+    res.status(500).json({ error: 'Błąd serwera' });
+  }
+});
+
+// Obsługa globalnych błędów
+process.on('uncaughtException', (err) => {
+  console.error('❌ Nieobsłużony wyjątek:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Nieobsłużona obietnica:', reason);
+});

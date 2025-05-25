@@ -18,6 +18,9 @@ import UserLoans from "./Views/UserLoans";
 import Layout from "./Views/Layout";
 import MyReservations from "./Views/MyReservations";
 import UserProfile from './Views/UserProfile';
+import RoomReservations from "./Views/RoomReservations";
+import Info from './Views/Info';
+
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -40,6 +43,7 @@ function AppContent() {
         <Route path="/branches/:id" element={<BranchBooks />} />
         <Route path="/books/:id" element={<BookDetails />} />
         <Route path="/select-branch" element={<SelectBranch />} />
+        <Route path="/info" element={<Info />} />
         <Route
           path="/my-loans"
           element={<UserLoans userId={localStorage.getItem("userId")} />}
@@ -49,6 +53,7 @@ function AppContent() {
           element={<MyReservations userId={localStorage.getItem("userId")} />}
         />
         <Route path="/account" element={<UserProfile />} />
+        <Route path="/room-reservations" element={<RoomReservations />}/>
       </Routes>
     </>
   );
@@ -65,3 +70,4 @@ function App() {
 }
 
 export default App;
+

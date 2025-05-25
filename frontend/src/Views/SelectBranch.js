@@ -6,18 +6,23 @@ function SelectBranch() {
   const [selected, setSelected] = useState('');
   const navigate = useNavigate();
 
+  // 🔹 Pobierz listę filii z backendu po załadowaniu komponentu
   useEffect(() => {
     fetch('http://localhost:3001/branches')
       .then(res => res.json())
       .then(data => setBranches(data));
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (selected) {
-      navigate(`/branches/${selected}`);
-    }
-  };
+  // 🔹 Po zatwierdzeniu zapisz do localStorage i przejdź do widoku książek
+// plik: SelectBranch.js
+const handleSubmit = (e) => {
+  e.preventDefault();
+  if (selected) {
+    const selectedBranch = branches.find(branch => branch.id === parseInt(selected));
+    localStorage.setItem("selectedBranch", JSON.stringify(selectedBranch)); // ZAPISZ filię
+    navigate(`/branches/${selected}`);
+  }
+};
 
   return (
     <div className="container">
@@ -42,3 +47,4 @@ function SelectBranch() {
 }
 
 export default SelectBranch;
+

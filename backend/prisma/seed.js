@@ -12,29 +12,31 @@ const getBooksForBranch = (branchId, count) => {
     publishedYear: 1990 + (i % 30),
     description: `To jest przykładowy opis książki numer ${i + 1}`,
     quantity: Math.floor(Math.random() * 5) + 1,
-    coverUrl: '/book.jpg', // lub zewnętrzny link
+    coverUrl: '/book.jpg',
     branchId: branchId,
   }));
 };
 
 async function main() {
-  // Najpierw usuń wszystko (opcjonalnie)
+  // 🧹 Wyczyść dane z zależnościami
+  await prisma.roomReservation.deleteMany();
+  await prisma.reservation.deleteMany();
   await prisma.loan.deleteMany();
   await prisma.book.deleteMany();
   await prisma.branch.deleteMany();
 
-  // Dodaj 3 filie
-  const branches = await prisma.branch.createMany({
+  // ➕ Dodaj 3 filie z godzinami otwarcia
+  await prisma.branch.createMany({
     data: [
-      { name: 'Biblioteka Kraków', location: 'Kraków' },
-      { name: 'Biblioteka Warszawa', location: 'Warszawa' },
-      { name: 'Biblioteka Gdańsk', location: 'Gdańsk' },
+      { name: 'Biblioteka Kraków', location: 'Kraków', openHour: 9, closeHour: 17 },
+      { name: 'Biblioteka Warszawa', location: 'Warszawa', openHour: 10, closeHour: 18 },
+      { name: 'Biblioteka Gdańsk', location: 'Gdańsk', openHour: 8, closeHour: 16 },
     ]
   });
 
   const createdBranches = await prisma.branch.findMany();
 
-  // Dodaj po 30 książek do każdej filii
+  // 📚 Dodaj po 30 książek do każdej filii
   for (const branch of createdBranches) {
     const books = getBooksForBranch(branch.id, 30);
     await prisma.book.createMany({ data: books });

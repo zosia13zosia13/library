@@ -10,24 +10,27 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
 
-  loans         Loan[]
-  reservations  Reservation[]
-  notifications Notification[]
-  reviews       Review[]
+  loans           Loan[]
+  reservations    Reservation[]
+  notifications   Notification[]
+  reviews         Review[]
+  RoomReservation RoomReservation[]
 }
 
 model Branch {
-  id       Int    @id @default(autoincrement())
-  name     String
-  location String
-
-  books        Book[]
-  reservations Reservation[]
+  id               Int               @id @default(autoincrement())
+  name             String
+  location         String
+  openHour         Int // np. 9
+  closeHour        Int // np. 17
+  books            Book[]
+  reservations     Reservation[]
+  roomReservations RoomReservation[]
 }
 
 model Book {
@@ -88,4 +91,18 @@ model Review {
 
   user User @relation(fields: [userId], references: [id])
   book Book @relation(fields: [bookId], references: [id])
+}
+
+model RoomReservation {
+  id       Int @id @default(autoincrement())
+  userId   Int
+  branchId Int
+
+  user       User     @relation(fields: [userId], references: [id])
+  branch     Branch   @relation(fields: [branchId], references: [id])
+  reservedAt DateTime @default(now())
+  startTime  DateTime
+  endTime    DateTime
+  purpose    String // np. "Gry planszowe"
+  canceled   Boolean  @default(false)
 }
