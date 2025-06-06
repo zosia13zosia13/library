@@ -26,7 +26,6 @@ function Layout() {
           <Link to="/my-reservations" className="nav-link">📋 Rezerwacje książek</Link>
           <Link to="/room-reservations" className="nav-link">🏠 Rezerwacje sali</Link>
           <Link to="/account" className="nav-link">👤 Moje konto</Link>
-          <button onClick={handleLogout} className="nav-link logout">🚪 Wyloguj</button>
         </>
       )}
     </nav>

@@ -1,48 +1,52 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../style.css';
-import { UserContext } from '../App';
+import React, { useEffect, useState } from 'react';
+import { toggleDarkMode, applyDarkModeSetting } from '../utils/toggleDarkMode';
+import '../Account.css';
 
-function UserProfile() {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  const userId = useContext(UserContext);
-
-  fetch('http://localhost:3001/me', {
-    credentials: 'include'
-  })
-    .then(res => res.json())
-    .then(user => console.log('Jestem zalogowany jako:', user));
+function Account() {
+  const [user] = useState({ name: 'Zosia', email: 'zosiazosia13@gmail.com' });
+  const [branch, setBranch] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/users/${userId}`)
-      .then(res => res.json())
-      .then(data => setUser(data));
-  }, [userId]);
+    const savedBranch = localStorage.getItem('selectedBranch');
+    if (savedBranch) setBranch(JSON.parse(savedBranch));
+
+    applyDarkModeSetting(); // Ustawienie klasy na body przy ładowaniu
+    const savedDark = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDark);
+  }, []);
+
+  const handleToggleDarkMode = () => {
+    toggleDarkMode();
+    const newValue = !darkMode;
+    setDarkMode(newValue);
+    localStorage.setItem('darkMode', newValue);
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem('userId');
-    navigate('/login');
+    localStorage.clear();
+    window.location.href = '/login';
   };
-
-  const toggleDarkMode = () => {
-    const enabled = document.body.classList.toggle('dark-mode');
-    localStorage.setItem('darkMode', enabled);
-  };
-
-  if (!user) return <p>Ładowanie profilu...</p>;
 
   return (
-    <div className="container">
+    <div className="account-container">
       <h2>👤 Moje konto</h2>
-      <p><strong>Imię:</strong> {user.name}</p>
-      <p><strong>Email:</strong> {user.email}</p>
-      <p><strong>Filia:</strong> {user.branchName || "Nie przypisano"}</p>
+      <div className="account-info">
+        <p><strong>Imię:</strong> {user.name}</p>
+        <p><strong>Email:</strong> {user.email}</p>
+        <p><strong>Obecna filia:</strong> {branch?.name || 'Nie przypisano'}</p>
+      </div>
 
-      <button onClick={toggleDarkMode}>🌙 Przełącz tryb nocny</button>
-      <button onClick={handleLogout} style={{ marginLeft: "10px" }}>🚪 Wyloguj</button>
+      <div className="account-actions">
+        <button onClick={handleToggleDarkMode} className="dark-mode-btn">
+          {darkMode ? '☀️ Tryb dzienny' : '🌙 Tryb nocny'}
+        </button>
+        <button onClick={handleLogout} className="logout-btn">
+          🚪 Wyloguj
+        </button>
+      </div>
     </div>
   );
 }
 
-export default UserProfile;
+export default Account;
