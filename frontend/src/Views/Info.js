@@ -1,16 +1,39 @@
-// src/Views/Info.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import '../Info.css';
 
 function Info() {
-  const selected = JSON.parse(localStorage.getItem('selectedBranch'));
+  const [branch, setBranch] = useState(null);
 
-  if (!selected) return <p>Nie wybrano jeszcze filii.</p>;
+  useEffect(() => {
+    const saved = localStorage.getItem('selectedBranch');
+    if (saved) setBranch(JSON.parse(saved));
+  }, []);
+
+  const renderSchedule = () => (
+    <ul className="schedule-list">
+      <li><span>Poniedziałek – Piątek:</span><span>{branch.openHour}:00 – {branch.closeHour}:00</span></li>
+      <li><span>Sobota:</span><span>8:00 – 12:00</span></li>
+      <li><span>Niedziela:</span><span className="closed">Zamknięte 🛑</span></li>
+    </ul>
+  );
 
   return (
-    <div className="container">
-      <h2>📍 Wybrana filia: {selected.name}</h2>
-      <p><strong>Miasto:</strong> {selected.location}</p>
-      <p><strong>Godziny działania:</strong> {selected.openHour}:00 – {selected.closeHour}:00</p>
+    <div className="branch-info-container">
+      <h2 className="branch-info-title">📍 Informacje o filii</h2>
+      {branch ? (
+        <div className="branch-details">
+          <p><strong>Nazwa:</strong> {branch.name}</p>
+          <p><strong>Adres:</strong> {branch.address}</p>
+          <p><strong>Opis:</strong> {branch.description || 'Brak dodatkowych informacji.'}</p>
+
+          <div className="opening-hours">
+            <h3>🕒 Godziny otwarcia</h3>
+            {renderSchedule()}
+          </div>
+        </div>
+      ) : (
+        <p className="no-branch">Nie wybrano filii.</p>
+      )}
     </div>
   );
 }

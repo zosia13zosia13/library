@@ -1,12 +1,26 @@
 const express = require("express");
-const app = express();
-const PORT = 3001;
 const bcrypt = require("bcrypt");
 const cors = require("cors");
+const session = require('express-session'); 
+const app = express();
+const PORT = 3001;
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-app.use(cors({ origin: "*" }));
+app.use(cors({
+  origin: 'http://localhost:3000',  // frontend
+  credentials: true                // umożliwia ciasteczka
+}));
+
+// ✅ 2. Potem sesja
+app.use(session({
+  secret: 'tajny-klucz',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 24 * 60 * 60 * 1000 }
+}));
+
+// ✅ 3. Parsowanie JSONa
 app.use(express.json());
 
 // Endpoint testowy
@@ -30,7 +44,8 @@ app.get("/books", async (req, res) => {
   }
 });
 
-app.get('/books/genres', async (req, res) => {
+
+app.get('/books/genres', async (_req, res) => {
     const genres = await prisma.book.findMany({
       distinct: ['genre'],
       select: { genre: true }
@@ -123,34 +138,58 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+app.use(session({
+  secret: 'tajny-klucz', // użyj zmiennej środowiskowej w produkcji
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 dzień
+}));
+
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  const user = await prisma.user.findUnique({ where: { email } });
 
-  try {
-    // 1. Znajdź użytkownika po emailu
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    // 2. Jeśli nie istnieje
-    if (!user) {
-      return res.status(401).json({ message: "Błędne dane logowania" });
-    }
-
-    // 3. Porównaj hasło z hashem w bazie
-    const passwordMatch = await bcrypt.compare(password, user.password);
-
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Błędne dane logowania" });
-    }
-
-    // 4. Logowanie zakończone sukcesem
-    res.status(200).json({ message: "Zalogowano pomyślnie", userId: user.id });
-  } catch (err) {
-    console.error("Błąd przy logowaniu:", err);
-    res.status(500).send("Wystąpił błąd serwera.");
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.status(401).json({ message: 'Błędne dane logowania' });
   }
+
+  req.session.userId = user.id;
+  res.json({ message: 'Zalogowano' });
 });
+
+function isAuthenticated(req, res, next) {
+  if (req.session.userId) return next();
+  return res.status(401).json({ message: 'Brak autoryzacji' });
+}
+
+// app.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     // 1. Znajdź użytkownika po emailu
+//     const user = await prisma.user.findUnique({
+//       where: { email },
+//     });
+
+//     // 2. Jeśli nie istnieje
+//     if (!user) {
+//       return res.status(401).json({ message: "Błędne dane logowania" });
+//     }
+
+//     // 3. Porównaj hasło z hashem w bazie
+//     const passwordMatch = await bcrypt.compare(password, user.password);
+
+//     if (!passwordMatch) {
+//       return res.status(401).json({ message: "Błędne dane logowania" });
+//     }
+
+//     // 4. Logowanie zakończone sukcesem
+//     res.status(200).json({ message: "Zalogowano pomyślnie", userId: user.id });
+//   } catch (err) {
+//     console.error("Błąd przy logowaniu:", err);
+//     res.status(500).send("Wystąpił błąd serwera.");
+//   }
+// });
 
 app.get("/branches", async (req, res) => {
   try {
@@ -320,31 +359,109 @@ app.delete('/reservations/:id', async (req, res) => {
   }
 });
 
-// Rezerwacja sali (z uwzględnieniem filii)
+// ✅ Rezerwacja sali (z limitem + dozwolone dni/godziny)
 app.post('/room-reservations', async (req, res) => {
-  const { userId, branchId, startTime, endTime, purpose } = req.body;
-
   try {
-    await prisma.roomReservation.create({
-      data: {
-        user: { connect: { id: userId } },
-        branch: { connect: { id: branchId } },
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-        purpose
+    const { userId, startTime, endTime, branchId, purpose } = req.body;
+
+    if (!userId || !startTime || !endTime || !branchId || !purpose) {
+      return res.status(400).json({ message: 'Brakuje wymaganych danych.' });
+    }
+
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const dayOfWeek = start.getDay(); // 0 = niedziela, 6 = sobota
+    const startHour = start.getHours();
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: 'Nieprawidłowy format daty.' });
+    }
+
+    // 🔹 Pobranie danych filii
+    const branch = await prisma.branch.findUnique({ where: { id: branchId } });
+    if (!branch) return res.status(404).json({ message: 'Nie znaleziono filii.' });
+
+    // 🔹 Walidacja dni i godzin
+    if (dayOfWeek === 0) {
+      return res.status(400).json({ message: 'Biblioteka jest zamknięta w niedzielę.' });
+    }
+
+    if (dayOfWeek === 6) {
+      if (startHour < 8 || startHour >= 12) {
+        return res.status(400).json({ message: 'W soboty można rezerwować tylko między 8:00 a 12:00.' });
+      }
+    } else {
+      if (startHour < branch.openHour || startHour + 2 > branch.closeHour) {
+        return res.status(400).json({
+          message: `Rezerwacje dozwolone tylko w godzinach ${branch.openHour}:00 – ${branch.closeHour - 2}:00.`
+        });
+      }
+    }
+
+    // 🔹 Zakres dnia i tygodnia
+    const dayStart = new Date(start);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(start);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const weekStart = new Date(start);
+    weekStart.setDate(start.getDate() - start.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    // 🔹 Rezerwacje dzienne
+    const dayReservations = await prisma.roomReservation.count({
+      where: {
+        userId,
+        startTime: { gte: dayStart, lte: dayEnd },
+        canceled: false
       }
     });
 
-    res.status(201).json({ message: 'Sala została zarezerwowana!' });
+    if (dayReservations >= 2) {
+      return res.status(400).json({ message: 'Można zarezerwować maksymalnie 2 razy dziennie.' });
+    }
+
+    // 🔹 Rezerwacje tygodniowe (unikalne dni)
+    const weekReservations = await prisma.roomReservation.findMany({
+      where: {
+        userId,
+        startTime: { gte: weekStart, lte: weekEnd },
+        canceled: false
+      }
+    });
+
+    const uniqueDays = new Set(weekReservations.map(r => new Date(r.startTime).toDateString()));
+    if (uniqueDays.size >= 3 && !uniqueDays.has(start.toDateString())) {
+      return res.status(400).json({ message: 'Można zarezerwować tylko w 3 różnych dniach tygodnia.' });
+    }
+
+    // 🔹 Tworzenie rezerwacji
+    const newReservation = await prisma.roomReservation.create({
+      data: {
+        userId,
+        branchId,
+        startTime: start,
+        endTime: end,
+        purpose,
+        canceled: false
+      }
+    });
+
+    res.json({ message: 'Zarezerwowano salę!', reservation: newReservation });
   } catch (err) {
-    console.error('Błąd przy rezerwacji sali:', err);
-    res.status(500).send('Błąd serwera');
+    console.error('❌ Błąd rezerwacji sali:', err);
+    res.status(500).json({ error: 'Błąd serwera przy rezerwacji sali.' });
   }
 });
 
-// Pobieranie rezerwacji sali użytkownika
+
 app.get('/users/:id/room-reservations', async (req, res) => {
   const userId = parseInt(req.params.id);
+  if (isNaN(userId)) return res.status(400).json({ error: 'Nieprawidłowe ID użytkownika.' });
 
   try {
     const reservations = await prisma.roomReservation.findMany({
@@ -359,20 +476,21 @@ app.get('/users/:id/room-reservations', async (req, res) => {
   }
 });
 
-// Anulowanie rezerwacji sali
+
 app.patch('/room-reservations/:id/cancel', async (req, res) => {
   const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'Nieprawidłowe ID rezerwacji.' });
 
   try {
-    await prisma.roomReservation.update({
+    const updated = await prisma.roomReservation.update({
       where: { id },
       data: { canceled: true }
     });
 
-    res.json({ message: 'Rezerwacja anulowana.' });
+    res.json({ message: 'Rezerwacja anulowana.', reservation: updated });
   } catch (err) {
     console.error('Błąd anulowania rezerwacji sali:', err);
-    res.status(500).json({ error: 'Błąd serwera' });
+    res.status(500).json({ error: 'Błąd serwera przy anulowaniu.' });
   }
 });
 
@@ -383,4 +501,19 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Nieobsłużona obietnica:', reason);
+});
+
+app.get('/me', (req, res) => {
+  if (req.session.userId) {
+    res.json({ userId: req.session.userId });
+  } else {
+    res.status(401).json({ message: 'Nie zalogowany' });
+  }
+});
+
+app.post('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Wylogowano' });
+  });
 });

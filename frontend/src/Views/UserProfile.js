@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../style.css';
+import { UserContext } from '../App';
 
 function UserProfile() {
-  const navigate = useNavigate();
-  const userId = localStorage.getItem('userId');
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const userId = useContext(UserContext);
+
+  fetch('http://localhost:3001/me', {
+    credentials: 'include'
+  })
+    .then(res => res.json())
+    .then(user => console.log('Jestem zalogowany jako:', user));
 
   useEffect(() => {
     fetch(`http://localhost:3001/users/${userId}`)

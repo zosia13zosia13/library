@@ -1,0 +1,47 @@
+.branch-info-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-family: sans-serif;
+  }
+  
+  .branch-info-title {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #333;
+  }
+  
+  .branch-details {
+    line-height: 1.8;
+    font-size: 1rem;
+  }
+  
+  .opening-hours {
+    margin-top: 1rem;
+    border-top: 1px solid #ccc;
+    padding-top: 1rem;
+  }
+  
+  .opening-hours h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #444;
+  }
+  
+  .opening-hours ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .opening-hours li {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted #ccc;
+    padding: 0.3rem 0;
+    color: #333;
+  }
+  

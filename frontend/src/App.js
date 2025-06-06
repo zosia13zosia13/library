@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-  useLocation,
 } from "react-router-dom";
 
 import Register from "./Views/Register";
@@ -21,18 +20,35 @@ import UserProfile from './Views/UserProfile';
 import RoomReservations from "./Views/RoomReservations";
 import Info from './Views/Info';
 
+export const UserContext = createContext(null);
+
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const location = useLocation();
+  const [userId, setUserId] = useState(null)
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    setIsLoggedIn(!!userId);
-  }, [location]);
+    fetch('http://localhost:3001/me', {
+      credentials: 'include'
+    })
+      .then(res => {
+        console.log('STATUS', res.status);
+        return res.ok ? res.json() : null;
+      })
+      .then(data => {
+        console.log('ME response:', data);
+        if (data) setIsLoggedIn(true);
+        localStorage.setItem('userId', data.userId)
+        setUserId(data.userId)
+      })
+      .catch(err => {
+        console.error('ME error:', err);
+        setIsLoggedIn(false);
+      });
+  }, []); 
 
   return (
-    <>
+    <UserContext.Provider value={userId}>
       {isLoggedIn && <Layout />}
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
@@ -54,8 +70,10 @@ function AppContent() {
         />
         <Route path="/account" element={<UserProfile />} />
         <Route path="/room-reservations" element={<RoomReservations />}/>
+        
+        
       </Routes>
-    </>
+      </UserContext.Provider>
   );
 }
 

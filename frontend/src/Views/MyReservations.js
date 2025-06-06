@@ -4,25 +4,35 @@ import '../style.css';
 function MyReservations({ userId }) {
   const [reservations, setReservations] = useState([]);
 
-  // Pobieranie rezerwacji użytkownika
   useEffect(() => {
-    fetch(`http://localhost:3001/users/${userId}/reservations`)
+    fetch(`http://localhost:3001/users/${userId}/room-reservations`)
       .then(res => res.json())
-      .then(data => setReservations(data));
+      .then(data => {
+        if (Array.isArray(data)) {
+          setReservations(data);
+        } else {
+          console.error("⚠️ Rezerwacje nie są tablicą:", data);
+          setReservations([]);
+        }
+      })
+      .catch(err => {
+        console.error("❌ Błąd pobierania rezerwacji:", err);
+        setReservations([]);
+      });
   }, [userId]);
 
-  // Anulowanie rezerwacji
   const handleCancel = async (reservationId) => {
     const confirm = window.confirm('Czy na pewno chcesz anulować tę rezerwację?');
     if (!confirm) return;
 
-    const res = await fetch(`http://localhost:3001/reservations/${reservationId}`, {
-      method: 'DELETE'
+    const res = await fetch(`http://localhost:3001/room-reservations/${reservationId}/cancel`, {
+      method: 'PATCH',
     });
 
     if (res.ok) {
-      // Usuń rezerwację z listy
-      setReservations(prev => prev.filter(r => r.id !== reservationId));
+      setReservations(prev =>
+        prev.map(r => r.id === reservationId ? { ...r, canceled: true } : r)
+      );
     } else {
       alert('❌ Nie udało się anulować rezerwacji.');
     }
@@ -30,23 +40,25 @@ function MyReservations({ userId }) {
 
   return (
     <div className="container">
-      <h1>📋 Moje rezerwacje</h1>
+      <h1>📋 Moje rezerwacje sali</h1>
       {reservations.length === 0 ? (
-        <p>Brak aktywnych rezerwacji.</p>
+        <p>Brak rezerwacji sali.</p>
       ) : (
         <ul className="loans-list">
           {reservations.map((res) => (
             <li key={res.id} className="loan-item">
-              <strong>{res.title}</strong> <br />
-              Filia: {res.branchName} <br />
-              Rezerwacja od: {new Date(res.reservedAt).toLocaleDateString()} <br />
-              Wygasa: {new Date(res.expiresAt).toLocaleDateString()} <br />
-              <button
-                className="cancel-button"
-                onClick={() => handleCancel(res.id)}
-              >
-                ❌ Anuluj
-              </button>
+              <p><strong>Cel:</strong> {res.purpose}</p>
+              <p><strong>Od:</strong> {new Date(res.startTime).toLocaleString()}</p>
+              <p><strong>Do:</strong> {new Date(res.endTime).toLocaleString()}</p>
+              <p><strong>Status:</strong> {res.canceled ? '❌ Anulowana' : '✅ Aktywna'}</p>
+              {!res.canceled && (
+                <button
+                  className="cancel-button"
+                  onClick={() => handleCancel(res.id)}
+                >
+                  ❌ Anuluj
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -56,5 +68,3 @@ function MyReservations({ userId }) {
 }
 
 export default MyReservations;
-
-

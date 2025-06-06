@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../style.css';
 
 function Login() {
@@ -9,7 +8,6 @@ function Login() {
     password: ''
   });
   const [message, setMessage] = useState('');
-
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -26,21 +24,21 @@ function Login() {
       const res = await fetch('http://localhost:3001/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // ⬅️ KLUCZOWE DLA SESJI
         body: JSON.stringify(formData)
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem('userId', data.userId)
+        // nie zapisujemy już userId, bo sesja to robi za nas
         navigate('/select-branch');
-      }      
-
-      
-      setMessage(data.message);
+      } else {
+        setMessage(data.message || 'Błąd logowania');
+      }
     } catch (err) {
       console.error('Błąd:', err);
-      setMessage('Wystąpił błąd');
+      setMessage('Wystąpił błąd podczas logowania');
     }
   };
 
@@ -73,4 +71,6 @@ function Login() {
 }
 
 export default Login;
+
+
 
