@@ -23,6 +23,7 @@ async function main() {
   await prisma.reservation.deleteMany();
   await prisma.loan.deleteMany();
   await prisma.book.deleteMany();
+  await prisma.event.deleteMany();
   await prisma.branch.deleteMany();
 
   // ➕ Dodaj 3 filie z godzinami otwarcia
@@ -42,9 +43,30 @@ async function main() {
     await prisma.book.createMany({ data: books });
   }
 
-  console.log('✅ Załadowano 90 książek (3 filie × 30)');
+  // 📅 Dodaj wydarzenia do pierwszej filii (przykładowo)
+  await prisma.event.createMany({
+    data: [
+      {
+        title: 'Warsztaty kreatywnego pisania',
+        description: 'Zajęcia dla młodzieży i dorosłych z pisania opowiadań.',
+        date: new Date('2025-06-21T17:00:00'),
+        branchId: createdBranches[0].id
+      },
+      {
+        title: 'Klub książki fantasy',
+        description: 'Spotkanie fanów Wiedźmina, Tolkiena i innych.',
+        date: new Date('2025-06-24T18:00:00'),
+        branchId: createdBranches[0].id
+      }
+    ]
+  });
+
+  console.log('✅ Załadowano książki, filie i wydarzenia!');
 }
 
 main()
-  .catch(e => console.error(e))
+  .catch(e => {
+    console.error('❌ Błąd w seed.js:', e);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());

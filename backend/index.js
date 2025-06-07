@@ -494,6 +494,61 @@ app.patch('/room-reservations/:id/cancel', async (req, res) => {
   }
 });
 
+// 📅 Lista wydarzeń w filii
+app.get('/branches/:branchId/events', async (req, res) => {
+  const branchId = parseInt(req.params.branchId);
+  const events = await prisma.event.findMany({
+    where: { branchId },
+    orderBy: { date: 'asc' }
+  });
+  res.json(events);
+});
+
+
+// ✅ Zapis na wydarzenie
+app.post('/events/:eventId/register', async (req, res) => {
+  const eventId = parseInt(req.params.eventId);
+  const { userId } = req.body;
+
+  const existing = await prisma.eventRegistration.findFirst({
+    where: { userId, eventId }
+  });
+
+  if (existing) {
+    return res.status(400).json({ message: 'Już zapisałeś się na to wydarzenie.' });
+  }
+
+  await prisma.eventRegistration.create({
+    data: {
+      userId,
+      eventId
+    }
+  });
+
+  res.status(201).json({ message: 'Zapisano na wydarzenie!' });
+});
+
+// 📅 Endpoint: pobierz wydarzenia dla konkretnej filii
+app.get('/branches/:id/events', async (req, res) => {
+  const branchId = parseInt(req.params.id);
+
+  if (isNaN(branchId)) {
+    return res.status(400).json({ error: 'Nieprawidłowe ID filii.' });
+  }
+
+  try {
+    const events = await prisma.event.findMany({
+      where: { branchId },
+      orderBy: { date: 'asc' }
+    });
+
+    res.json(events);
+  } catch (error) {
+    console.error('❌ Błąd pobierania wydarzeń:', error);
+    res.status(500).json({ error: 'Błąd serwera przy pobieraniu wydarzeń.' });
+  }
+});
+
 // Obsługa globalnych błędów
 process.on('uncaughtException', (err) => {
   console.error('❌ Nieobsłużony wyjątek:', err);
@@ -510,6 +565,7 @@ app.get('/me', (req, res) => {
     res.status(401).json({ message: 'Nie zalogowany' });
   }
 });
+
 
 app.post('/logout', (req, res) => {
   req.session.destroy(() => {

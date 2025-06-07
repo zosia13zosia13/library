@@ -19,6 +19,8 @@ import MyReservations from "./Views/MyReservations";
 import UserProfile from './Views/UserProfile';
 import RoomReservations from "./Views/RoomReservations";
 import Info from './Views/Info';
+import EventList from './Views/EventList';
+
 
 export const UserContext = createContext(null);
 
@@ -59,6 +61,7 @@ function AppContent() {
         <Route path="/branches/:id" element={<BranchBooks />} />
         <Route path="/books/:id" element={<BookDetails />} />
         <Route path="/select-branch" element={<SelectBranch />} />
+        <Route path="/events" element={<EventList />} />
         <Route path="/info" element={<Info />} />
         <Route
           path="/my-loans"

@@ -15,11 +15,12 @@ model User {
   email    String @unique
   password String
 
-  loans           Loan[]
-  reservations    Reservation[]
-  notifications   Notification[]
-  reviews         Review[]
-  RoomReservation RoomReservation[]
+  loans             Loan[]
+  reservations      Reservation[]
+  notifications     Notification[]
+  reviews           Review[]
+  roomReservation   RoomReservation[]
+  eventRegistration EventRegistration[]
 }
 
 model Branch {
@@ -31,6 +32,7 @@ model Branch {
   books            Book[]
   reservations     Reservation[]
   roomReservations RoomReservation[]
+  event            Event[]
 }
 
 model Book {
@@ -105,4 +107,24 @@ model RoomReservation {
   endTime    DateTime
   purpose    String // np. "Gry planszowe"
   canceled   Boolean  @default(false)
+}
+
+model Event {
+  id            Int                 @id @default(autoincrement())
+  title         String
+  description   String
+  date          DateTime
+  branchId      Int
+  branch        Branch              @relation(fields: [branchId], references: [id])
+  registrations EventRegistration[]
+}
+
+model EventRegistration {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  eventId   Int
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
 }
