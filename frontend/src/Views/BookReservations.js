@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import '../style.css';
 
-function MyReservations({ userId }) {
+function BookReservations({ userId }) {
   const [reservations, setReservations] = useState([]);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/users/${userId}/room-reservations`)
+    fetch(`http://localhost:3001/users/${userId}/reservations`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -25,8 +25,8 @@ function MyReservations({ userId }) {
     const confirm = window.confirm('Czy na pewno chcesz anulować tę rezerwację?');
     if (!confirm) return;
 
-    const res = await fetch(`http://localhost:3001/room-reservations/${reservationId}/cancel`, {
-      method: 'PATCH',
+    const res = await fetch(`http://localhost:3001/reservations/${reservationId}`, {
+      method: 'DELETE',
     });
 
     if (res.ok) {
@@ -40,7 +40,7 @@ function MyReservations({ userId }) {
 
   return (
     <div className="container">
-      <h1>📋 Moje rezerwacje sali</h1>
+      <h1>📋 Moje rezerwacje książek</h1>
       {reservations.length === 0 ? (
         <p>Brak rezerwacji sali.</p>
       ) : (
@@ -48,8 +48,8 @@ function MyReservations({ userId }) {
           {reservations.map((res) => (
             <li key={res.id} className="loan-item">
               <p><strong>Cel:</strong> {res.purpose}</p>
-              <p><strong>Od:</strong> {new Date(res.startTime).toLocaleString()}</p>
-              <p><strong>Do:</strong> {new Date(res.endTime).toLocaleString()}</p>
+              <p><strong>Od:</strong> {new Date(res.reservedAt).toLocaleString()}</p>
+              <p><strong>Do:</strong> {new Date(res.expiresAt).toLocaleString()}</p>
               <p><strong>Status:</strong> {res.canceled ? '❌ Anulowana' : '✅ Aktywna'}</p>
               {!res.canceled && (
                 <button
@@ -67,4 +67,4 @@ function MyReservations({ userId }) {
   );
 }
 
-export default MyReservations;
+export default BookReservations;

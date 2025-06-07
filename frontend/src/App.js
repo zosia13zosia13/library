@@ -15,7 +15,7 @@ import BookDetails from "./Views/BookDetails";
 import SelectBranch from "./Views/SelectBranch";
 import UserLoans from "./Views/UserLoans";
 import Layout from "./Views/Layout";
-import MyReservations from "./Views/MyReservations";
+import BookReservations from "./Views/BookReservations";
 import UserProfile from './Views/UserProfile';
 import RoomReservations from "./Views/RoomReservations";
 import Info from './Views/Info';
@@ -69,7 +69,7 @@ function AppContent() {
         />
         <Route
           path="/my-reservations"
-          element={<MyReservations userId={localStorage.getItem("userId")} />}
+          element={<BookReservations userId={localStorage.getItem("userId")} />}
         />
         <Route path="/account" element={<UserProfile />} />
         <Route path="/room-reservations" element={<RoomReservations />}/>
