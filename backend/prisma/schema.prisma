@@ -29,6 +29,9 @@ model Branch {
   location         String
   openHour         Int // np. 9
   closeHour        Int // np. 17
+  address          String // 🆕 Adres
+  phone            String // 🆕 Numer kontaktowy
+  email            String // 🆕 E-mail
   books            Book[]
   reservations     Reservation[]
   roomReservations RoomReservation[]

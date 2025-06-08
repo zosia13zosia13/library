@@ -47,7 +47,6 @@ function BookReservations({ userId }) {
         <ul className="loans-list">
           {reservations.map((res) => (
             <li key={res.id} className="loan-item">
-              <p><strong>Cel:</strong> {res.purpose}</p>
               <p><strong>Od:</strong> {new Date(res.reservedAt).toLocaleString()}</p>
               <p><strong>Do:</strong> {new Date(res.expiresAt).toLocaleString()}</p>
               <p><strong>Status:</strong> {res.canceled ? '❌ Anulowana' : '✅ Aktywna'}</p>

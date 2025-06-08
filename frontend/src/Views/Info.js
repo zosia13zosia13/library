@@ -24,7 +24,8 @@ function Info() {
         <div className="branch-details">
           <p><strong>Nazwa:</strong> {branch.name}</p>
           <p><strong>Adres:</strong> {branch.address}</p>
-          <p><strong>Opis:</strong> {branch.description || 'Brak dodatkowych informacji.'}</p>
+          <p><strong>E-mail:</strong> {branch.email}</p>
+          <p><strong>Telefon:</strong> {branch.phone}</p>
 
           <div className="opening-hours">
             <h3>🕒 Godziny otwarcia</h3>

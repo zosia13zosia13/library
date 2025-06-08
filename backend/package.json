@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "db:reset": "npx prisma db push --force-reset"
+    "db:reset": "npx prisma db push --force-reset",
+    "db:seed": "node prisma/seed.js"
+
   },
   "keywords": [],
   "author": "",

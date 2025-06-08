@@ -14,12 +14,44 @@ async function main() {
   // 🏛️ Dodaj 4 filie
   await prisma.branch.createMany({
     data: [
-      { name: 'Biblioteka Kraków', location: 'Kraków', openHour: 9, closeHour: 17 },
-      { name: 'Biblioteka Warszawa', location: 'Warszawa', openHour: 10, closeHour: 18 },
-      { name: 'Biblioteka Gdańsk', location: 'Gdańsk', openHour: 8, closeHour: 16 },
-      { name: 'Biblioteka Wrocław', location: 'Wrocław', openHour: 11, closeHour: 19 }
+      {
+        name: 'Biblioteka Kraków',
+        location: 'Kraków',
+        openHour: 9,
+        closeHour: 17,
+        address: 'ul. Karmelicka 12, 30-123 Kraków',
+        phone: '12 345 67 89',
+        email: 'krakow@biblioteka.pl'
+      },
+      {
+        name: 'Biblioteka Warszawa',
+        location: 'Warszawa',
+        openHour: 10,
+        closeHour: 18,
+        address: 'ul. Marszałkowska 45, 00-123 Warszawa',
+        phone: '22 987 65 43',
+        email: 'warszawa@biblioteka.pl'
+      },
+      {
+        name: 'Biblioteka Gdańsk',
+        location: 'Gdańsk',
+        openHour: 8,
+        closeHour: 16,
+        address: 'ul. Długa 3, 80-831 Gdańsk',
+        phone: '58 123 45 67',
+        email: 'gdansk@biblioteka.pl'
+      },
+      {
+        name: 'Biblioteka Wrocław',
+        location: 'Wrocław',
+        openHour: 11,
+        closeHour: 19,
+        address: 'ul. Świdnicka 25, 50-066 Wrocław',
+        phone: '71 456 78 90',
+        email: 'wroclaw@biblioteka.pl'
+      }
     ]
-  });
+  });  
 
   const branches = await prisma.branch.findMany();
 
@@ -41,7 +73,7 @@ async function main() {
           author: row.Autor,
           genre: row.Kategoria || 'Inne',
           publishedYear: getRandomInt(1950, 2024),
-          description: row.Opis,
+          description: (row.Opis && row.Opis !== 'NA') ? row.Opis : 'Brak opisu',
           quantity: getRandomInt(1, 10),
           coverUrl: '/book.jpg',
           branchId: randomBranch.id
