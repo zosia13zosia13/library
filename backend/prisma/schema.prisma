@@ -42,13 +42,13 @@ model Book {
   genre         String
   publishedYear Int
   description   String
-  quantity      Int
-  coverUrl      String? // link do okładki książki
+  quantity      Int // Dostępna liczba egzemplarzy
+  coverUrl      String? // Link do okładki książki (np. "/book.jpg")
   branchId      Int
   branch        Branch        @relation(fields: [branchId], references: [id])
-  reviews       Review[]
-  loans         Loan[]
-  reservations  Reservation[]
+  reviews       Review[] // Relacja 1:N z recenzjami
+  loans         Loan[] // Relacja 1:N z wypożyczeniami
+  reservations  Reservation[] // Relacja 1:N z rezerwacjami
 }
 
 model Loan {
