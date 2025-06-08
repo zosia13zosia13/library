@@ -566,6 +566,28 @@ app.get('/me', (req, res) => {
   }
 });
 
+// pobranie uzytkownika
+router.get('/users/:id', async (req, res) => {
+  const userId = parseInt(req.params.id);
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    });
+
+    if (!user) return res.status(404).json({ message: 'Nie znaleziono użytkownika.' });
+
+    res.json(user);
+  } catch (error) {
+    console.error('❌ Błąd pobierania użytkownika:', error);
+    res.status(500).json({ message: 'Błąd serwera.' });
+  }
+});
 
 app.post('/logout', (req, res) => {
   req.session.destroy(() => {
