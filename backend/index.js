@@ -162,35 +162,6 @@ function isAuthenticated(req, res, next) {
   return res.status(401).json({ message: 'Brak autoryzacji' });
 }
 
-// app.post("/login", async (req, res) => {
-//   const { email, password } = req.body;
-
-//   try {
-//     // 1. Znajdź użytkownika po emailu
-//     const user = await prisma.user.findUnique({
-//       where: { email },
-//     });
-
-//     // 2. Jeśli nie istnieje
-//     if (!user) {
-//       return res.status(401).json({ message: "Błędne dane logowania" });
-//     }
-
-//     // 3. Porównaj hasło z hashem w bazie
-//     const passwordMatch = await bcrypt.compare(password, user.password);
-
-//     if (!passwordMatch) {
-//       return res.status(401).json({ message: "Błędne dane logowania" });
-//     }
-
-//     // 4. Logowanie zakończone sukcesem
-//     res.status(200).json({ message: "Zalogowano pomyślnie", userId: user.id });
-//   } catch (err) {
-//     console.error("Błąd przy logowaniu:", err);
-//     res.status(500).send("Wystąpił błąd serwera.");
-//   }
-// });
-
 app.get("/branches", async (req, res) => {
   try {
     const branches = await prisma.branch.findMany();
