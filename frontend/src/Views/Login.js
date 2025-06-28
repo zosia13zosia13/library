@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../style.css';
 
-function Login() {
+function Login({onLogin}) {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -33,6 +33,7 @@ function Login() {
       if (res.ok) {
         // nie zapisujemy już userId, bo sesja to robi za nas
         navigate('/select-branch');
+        onLogin();
       } else {
         setMessage(data.message || 'Błąd logowania');
       }

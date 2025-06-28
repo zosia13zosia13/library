@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { toggleDarkMode, applyDarkModeSetting } from '../utils/toggleDarkMode';
 import '../Account.css';
+import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../App';
 
-function Account() {
+function Account({onLogout}) {
   const [user, setUser] = useState(null);
   const [branch, setBranch] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
-  const userId = localStorage.getItem('userId'); // lub z contextu/autoryzacji
+  const navigate = useNavigate();
+
+  const userId = useContext(UserContext)
 
   useEffect(() => {
     const savedBranch = localStorage.getItem('selectedBranch');
@@ -25,6 +29,15 @@ function Account() {
     }
   }, [userId]);
 
+  const logout = () => {
+    console.log('wylogowywanie')
+    return fetch(`http://localhost:3001/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      
+    });
+  };
+
   const handleToggleDarkMode = () => {
     toggleDarkMode();
     const newValue = !darkMode;
@@ -32,9 +45,11 @@ function Account() {
     localStorage.setItem('darkMode', newValue);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     localStorage.clear();
-    window.location.href = '/login';
+    onLogout();
+    navigate('/login')
   };
 
   return (

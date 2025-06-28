@@ -39,9 +39,11 @@ function AppContent() {
       })
       .then(data => {
         console.log('ME response:', data);
-        if (data) setIsLoggedIn(true);
-        localStorage.setItem('userId', data.userId)
-        setUserId(data.userId)
+        if(data?.userId) {
+          setIsLoggedIn(true);
+          localStorage.setItem('userId', data.userId)
+          setUserId(data.userId)
+        }
       })
       .catch(err => {
         console.error('ME error:', err);
@@ -49,29 +51,37 @@ function AppContent() {
       });
   }, []); 
 
+  const onLogin = () => {
+    setIsLoggedIn(true);
+  }
+
+  const onLogout = () => {
+    setIsLoggedIn(false);
+  }
+
   return (
     <UserContext.Provider value={userId}>
       {isLoggedIn && <Layout />}
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login onLogin={onLogin} />} />
         <Route path="/books" element={<Books />} />
         <Route path="/branches" element={<Branches />} />
         <Route path="/branches/:id" element={<BranchBooks />} />
         <Route path="/books/:id" element={<BookDetails />} />
         <Route path="/select-branch" element={<SelectBranch />} />
         <Route path="/events" element={<EventList />} />
-        <Route path="/info" element={<Info />} />
+        <Route path="/info" element={<Info/>} />
         <Route
           path="/my-loans"
-          element={<UserLoans userId={localStorage.getItem("userId")} />}
+          element={<UserLoans userId={userId} />}
         />
         <Route
           path="/my-reservations"
-          element={<BookReservations userId={localStorage.getItem("userId")} />}
+          element={<BookReservations userId={userId} />}
         />
-        <Route path="/account" element={<UserProfile />} />
+        <Route path="/account" element={<UserProfile onLogout={onLogout} />} />
         <Route path="/room-reservations" element={<RoomReservations />}/>
         
         

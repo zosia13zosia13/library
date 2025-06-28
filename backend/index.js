@@ -434,6 +434,8 @@ app.post('/room-reservations', async (req, res) => {
 });
 
 
+//  Zwraca wszystkie rezerwacje sal (RoomReservation) dla wskazanego użytkownika (`:id`),
+//  posortowane chronologicznie rosnąco po `startTime`.
 app.get('/users/:id/room-reservations', async (req, res) => {
   const userId = parseInt(req.params.id);
   if (isNaN(userId)) return res.status(400).json({ error: 'Nieprawidłowe ID użytkownika.' });
@@ -542,7 +544,7 @@ app.get('/me', (req, res) => {
 });
 
 // pobranie uzytkownika
-router.get('/users/:id', async (req, res) => {
+app.get('/users/:id', async (req, res) => {
   const userId = parseInt(req.params.id);
 
   try {

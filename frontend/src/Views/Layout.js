@@ -1,21 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './Layout.css';
 
 function Layout() {
-  const navigate = useNavigate();
-
-  // 🔹 Wylogowanie użytkownika przez sesję
-  const handleLogout = async () => {
-    await fetch('http://localhost:3001/logout', {
-      method: 'POST',
-      credentials: 'include'
-    });
-
-    localStorage.removeItem('selectedBranch'); // ⬅️ ewentualnie
-    navigate('/login');
-  };
-
   return (
     <nav className="navbar">
       {(

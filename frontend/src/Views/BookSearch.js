@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../style.css'; // lub zmień ścieżkę, jeśli masz osobny plik CSS
+import '../style.css';
 
 function BookSearch({ onResults, branchId }) {
   const [query, setQuery] = useState('');
