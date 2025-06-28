@@ -44,6 +44,7 @@ app.get("/books", async (req, res) => {
   }
 });
 
+// Zwraca listę unikalnych gatunków dostępnych w tabeli Book.
 
 app.get('/books/genres', async (_req, res) => {
     const genres = await prisma.book.findMany({
@@ -54,6 +55,7 @@ app.get('/books/genres', async (_req, res) => {
     res.json(genres.map(g => g.genre));
   });
   
+// Elastyczna wyszukiwarka książek.
   app.get('/books/search', async (req, res) => {
     const { title, genre, branchId } = req.query;
   
@@ -304,7 +306,9 @@ app.get('/users/:id/reservations', async (req, res) => {
       title: r.book.title,
       reservedAt: r.reservedAt,
       expiresAt: r.expiresAt,
-      branchName: r.branch.name
+      branchName: r.branch.name,
+      canceled:   r.canceled,               // <-- nowe pole
+      status:     r.canceled ? 'Anulowana' : 'Aktywna'
     }));
 
     res.json(result);

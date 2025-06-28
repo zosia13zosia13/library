@@ -59,6 +59,16 @@ async function main() {
     throw new Error('Brak filii w bazie! Nie można dodać książek.');
   }
 
+  await prisma.event.create({
+    data: {
+      title: 'Spotkanie autorskie z Andrzejem Sapkowskim',
+      description:
+        'Rozmowa o sadze wiedźmińskiej, Q&A oraz podpisywanie egzemplarzy.',
+      date: new Date('2025-10-05T16:00:00+02:00'),
+      branchId: branches[0].id
+    }
+  });
+
   const books = [];
 
   // 📄 Wczytaj CSV
